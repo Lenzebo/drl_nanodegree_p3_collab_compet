@@ -12,8 +12,6 @@ def initEnvironment():
     :return:
     """
 
-    # env = UnityEnvironment(file_name='Reacher_1Agent')
-    # env = UnityEnvironment(file_name='Crawler')
     env = UnityEnvironment(file_name='Tennis/Tennis')
 
     # get the default brain

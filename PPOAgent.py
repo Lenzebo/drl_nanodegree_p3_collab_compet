@@ -111,8 +111,10 @@ class Agent():
 
         if not rollout:
             return
+
         states, actions, log_probs_old, returns, advantages = self.calculate_advantages(rollout, pending_value)
 
+        # no enough data to train on.. we need to skip the training step
         if states.size(0) < self.hyperparameter.mini_batch_number:
             return
 

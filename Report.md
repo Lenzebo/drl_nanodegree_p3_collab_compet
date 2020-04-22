@@ -1,22 +1,36 @@
-#Project 2: Continuous Control Project Submission Report
+# Project 3: Collaboration and Competition Submission Report
 
 ## Summary
 
-For this project, I implemented Proximal Policy Optimization to solve the Reacher (20 agents) environment in around 180 episodes. 
+For this project, I implemented Proximal Policy Optimization to solve the Tennis environment in around 1500 episodes. 
 The Policy-Network used was simply fully connected.
 
-## Algorithm choice
+## Approach
 
-When I started with this project, I used DDPG as suggested by the course material. 
-But regardless of the hyperparameters chosen, I could not get the network to get even close to the required score (mostly < 1).
-The training seemed to be very unstable and also very sensitive to all hyperparameters. 
-Looking out for alternatives, I looked into D4PG or A3C to stabilize the training.
+In order to tackle this cooperative multi-agent problem, I first had a quick look at the state space definition for both players:
+
+```buildoutcfg
+Agent 0: 
+State: 
+[[-1.08997889e+01 -1.85216200e+00 -9.53674316e-06  0.00000000e+00 -6.05859756e+00 -8.10827911e-02 -9.53674316e-06  0.00000000e+00]
+ [-1.08997889e+01 -1.85216200e+00 -9.53674316e-06  0.00000000e+00 -6.05859756e+00 -1.00070286e+00 -9.53674316e-06  0.00000000e+00]
+ [-1.08997889e+01 -1.85216200e+00 -9.53674316e-06  0.00000000e+00 -6.05859756e+00 -1.92032266e+00 -9.53674316e-06  0.00000000e+00]]
+Agent 1: 
+State: 
+[[-1.08997898e+01 -1.85216272e+00 -9.53674316e-06  0.00000000e+00  6.05859756e+00 -8.10827911e-02 -9.53674316e-06  0.00000000e+00]
+ [-1.08997898e+01 -1.85216272e+00 -9.53674316e-06  0.00000000e+00  6.05859756e+00 -1.00070286e+00 -9.53674316e-06  0.00000000e+00]
+ [-1.08997898e+01 -1.85216272e+00 -9.53674316e-06  0.00000000e+00  6.05859756e+00 -1.92032266e+00 -9.53674316e-06  0.00000000e+00]]
+```
+
+I noticed that first of all, in contrast to the description, the state space consists not only of
+position/velocity x,y of paddle and position/velocity xy of ball, but also of 3 previous samples stacked on top of each other. 
+This means that the state space for each agent is 24 and it should improve learning the motion of the ball.
+Second of all, the state spaces for both agents are set up in a way that the problem is symmetric, 
+i.e. without altering anything one can use self-play with the same policy for both agents.
+
+That means I could use PPO or DDPG similar to the previous assignment. 
+I decided to go for PPO, as I expected better convergence for these sparse rewards (hit ground or ball over net). 
  
-In the end I settled for PPO, because 
-1. The techniques required is quite different to DDPG (or D4PG) and is also not so related to the previous assignment of a DQN
-2. Training on whole trajectories/approximating the policy gradient is promising faster convergence for sparse rewards which this assignment seems perfect for
-3. The implementation seemed quite straight forward without any synchronization or other multithreading issues
-
 The algorithm was implemented after [click here](https://arxiv.org/abs/1707.06347):
  
 ```
@@ -50,18 +64,18 @@ and the estimated value of the (x,a) pair for the rest of the epoch
 The ```Agent``` class is not aware of the structure of the policy representation, so different implementations can be plugged in on construction. 
 
 ## Chosen Network structure
-As the state and action space are both relatively small, I decided to use a fully connected layers with 2 hidden layers with 512 neurons each.
+As the state and action space are both relatively small, I decided to use a fully connected layers with 2 hidden layers with 256 neurons each.
 
 ## Chosen Hyperparameters for training
 
 | Parameter           | Value         |   Description                                                                     | 
 | -------------       |:-------------:| -------------------------------------------------------------------------------   | 
-| learning_rate       | 3e-4          | Hyperparameter for model weight updates                                           |
+| learning_rate       | 1e-4          | Hyperparameter for model weight updates                                           |
 | adam_epsilon        | 1e-5          | Epsilon parameter for adam optimizer                                              | 
-| hidden_size         | 512           | size of each layer of the policy network (2 fully connected layers                |   
-| rollout_length      | 2000          | The number of steps to collect trajectories for approximating the policy gradient | 
+| hidden_size         | 256           | size of each layer of the policy network (2 fully connected layers                |   
+| rollout_length      | 1000          | The number of steps to collect trajectories for approximating the policy gradient | 
 | mini_batch_number   | 32            | The number of minibatches to train based on the collected rollouts                | 
-| optimization_epochs | 10            | The number of epochs to train with one set of rollouts                            |
+| optimization_epochs | 100           | The number of epochs to train with one set of rollouts                            |
 | ppo_clip            | 0.2           | Clipping for the objective function                                               |
 | gradient_clip       | 5.0           | Clipping for overall loss gradient                                                |
 | entropy_coefficent  | 0.01          | How much is the entropy loss term weighted against the objective loss term        | 
@@ -71,21 +85,25 @@ As the state and action space are both relatively small, I decided to use a full
 ## Results
 
 With the described model structure and hyperparameters, 
-the agent was able to solve (average score>30 in 100 episodes) the environment in less than 200 episodes:
+the agent was able to solve (average score>0.5 over 100 episodes) the environment in around 1500 episodes:
 
 ![Scores](imgs/scores.png)
-blue shows the socre for each episode, orange the average score over the last 100 episodes and 
-green shows the desired score (30) in order to solve the environment.
-Note, that I let it train a little longer (around 250 episodes) to see that the policy converges.
 
-Here is a gif of the resulting policy:
+blue shows the score for each episode, orange the average score over the last 100 episodes and 
+green shows the desired score (0.5) in order to solve the environment.
 
-![Stuck](imgs/policy.gif)
+The graph shows, that the rewards that were collected are highly unstable even after the policy learned 
+already a good strategy for both paddles to play together.  
+
+Here is a gif of the resulting policy after 5000 episodes:
+
+![Policy](imgs/tennis.gif)
 
 The trained model weights are saved in model/model.pth
 
 ## Future Improvements
 
-1. Try to solve the single-agent version
-2. Hyperparameter tuning to get faster convergence (also for the single-agent version)
-3. Implement Truly PPO [Truly PPO paper](https://arxiv.org/abs/1903.07940) to even further increase convergence ("improves the original PPO on both sample efficiencyand performance").
+1. Hyperparameter tuning to get faster convergence or more stable training. Rollout length/number of optimization epochs, 
+and mini batch size could help to stabilize
+1. Try with [MADDPG](https://arxiv.org/abs/1706.02275). Especially with prioritzed replay memory I would expect more stable training.
+1. Try it on "Soccer" environment
