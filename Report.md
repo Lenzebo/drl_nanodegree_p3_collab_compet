@@ -92,7 +92,12 @@ the agent was able to solve (average score>0.5 over 100 episodes) the environmen
 blue shows the score for each episode, orange the average score over the last 100 episodes and 
 green shows the desired score (0.5) in order to solve the environment.
 
-The graph shows, that the rewards that were collected are highly unstable even after the policy learned 
+Although the environment was solved after around 1500 episodes, 
+the average score dropped under the required performance twice during training. 
+So although improving over the 5000 epochs, it was not very stable and probably further hyperparameter tuning could help here.  
+The best performance was at 4000 episodes with an average score of 2.
+
+The graph shows, that the rewards that were collected are highly unstable even after the policy learned is
 already a good strategy for both paddles to play together.  
 
 Here is a gif of the resulting policy after 5000 episodes:
