@@ -108,7 +108,13 @@ class Agent():
         """
 
         rollout, pending_value = self.perform_rollout(environment, brain_name)
+
+        if not rollout:
+            return
         states, actions, log_probs_old, returns, advantages = self.calculate_advantages(rollout, pending_value)
+
+        if states.size(0) < self.hyperparameter.mini_batch_number:
+            return
 
         batcher = BatchSelection.Batcher(states.size(0) // self.hyperparameter.mini_batch_number,
                                          [np.arange(states.size(0))])
@@ -116,10 +122,12 @@ class Agent():
             batcher.shuffle()
             while not batcher.end():
                 batch_indices = batcher.next_batch()[0]
-                batch_indices = torch.Tensor(batch_indices).long()
 
-                self.train_batch(states[batch_indices], actions[batch_indices], log_probs_old[batch_indices],
-                                 returns[batch_indices], advantages[batch_indices])
+                if batch_indices.size:
+                    batch_indices = torch.Tensor(batch_indices).long()
+
+                    self.train_batch(states[batch_indices], actions[batch_indices], log_probs_old[batch_indices],
+                                     returns[batch_indices], advantages[batch_indices])
 
     def train_batch(self, sampled_states, sampled_actions, sampled_log_probs_old, sampled_returns, sampled_advantages):
         """
@@ -131,6 +139,7 @@ class Agent():
         :param sampled_advantages:
         :return:
         """
+
         _, log_probs, entropy_loss, values = self.policy(sampled_states, sampled_actions)
         values = values.cpu()
         log_probs = log_probs.cpu()

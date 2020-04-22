@@ -18,7 +18,7 @@ def trainAgent(env, brain_name, agent, n_episodes=5000, desired_score=30, n_scor
     scores = []  # list containing scores from each episode
     scores_window = deque(maxlen=n_score_window)  # last n_score_window scores
     t = tqdm.tqdm(range(1, n_episodes + 1))
-    min_episodes = 500
+    min_episodes = 5000
     try:
         for i_episode in t:
             agent.train_step(env, brain_name)
@@ -43,7 +43,7 @@ def trainAgent(env, brain_name, agent, n_episodes=5000, desired_score=30, n_scor
 
 
 def main():
-    desired_score = 30
+    desired_score = 0.5
     ma_window = 100
 
     env, brain_name, num_agents, state_size, action_size = initEnvironment()
@@ -51,6 +51,9 @@ def main():
     scores = trainAgent(env, brain_name, agent, n_episodes=5000, desired_score=desired_score, n_score_window=ma_window)
 
     plotScores(scores, desired_score, ma_window, show_window=True)
+
+    with open('scores.txt', 'w') as f:
+        np.savetxt(f, scores, fmt='%.5f')
 
     env.close()
 

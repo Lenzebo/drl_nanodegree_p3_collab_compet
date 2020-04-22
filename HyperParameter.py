@@ -6,4 +6,4 @@ HyperParameter = namedtuple("HyperParameter",
                                          "ppo_clip",
                                          "entropy_coefficent", "gradient_clip"])
 
-HyperParameter.__new__.__defaults__ = (3e-4, 1e-5, 512, 500, 0.99, 0.95, 32, 10, 0.2, 0.01, 5)
+HyperParameter.__new__.__defaults__ = (1e-4, 1e-5, 256, 1000, 0.99, 0.95, 32, 100, 0.2, 0.01, 5)

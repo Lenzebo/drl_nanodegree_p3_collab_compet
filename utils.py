@@ -85,11 +85,10 @@ def playOneEpisode(environment, brain_name, agent, train_mode=False, verbose=Fal
             print("##########################  Timestep " + str(timestep))
             for i in range(num_agents):
                 print("Agent " + str(i) + ": ")
-                print("State: " + np.array2string(state[i], max_line_width=np.inf))
+                print("State: \n" + np.array2string(np.reshape(next_state[i], [3,8]), max_line_width=np.inf))
                 print("Action: " + str(action[i]))
                 print("Reward: " + str(reward[i]))
-
-            print("ds:  " + np.array2string(state[1] - state[0], max_line_width=np.inf))
+                print("ds: \n" + np.array2string(np.reshape(next_state[i] - state[i], [3,8]), max_line_width=np.inf)) # , max_line_width=np.inf
 
         state = next_state
         total_r += reward
