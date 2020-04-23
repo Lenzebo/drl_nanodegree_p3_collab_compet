@@ -5,7 +5,7 @@
 For this project, I implemented Proximal Policy Optimization to solve the Tennis environment in around 1500 episodes. 
 The Policy-Network used was simply fully connected.
 
-## Approach
+## Approach and Algorithm Choice
 
 In order to tackle this cooperative multi-agent problem, I first had a quick look at the state space definition for both players:
 
@@ -30,6 +30,12 @@ i.e. without altering anything one can use self-play with the same policy for bo
 
 That means I could use PPO or DDPG similar to the previous assignment. 
 I decided to go for PPO, as I expected better convergence for these sparse rewards (hit ground or ball over net). 
+The network chosen were two fully connected neural networks for actor (that returns an action mean and std) 
+and the critic (which returns the expected value from a particular state and action).
+
+The normal distribution in the actor network with an initial standard deviation of 1 allows balancing exploration at the beginning of the training and reduces over the time of training.
+
+As both agents are having the same policy, they both share actor and critic network during training.
  
 The algorithm was implemented after [click here](https://arxiv.org/abs/1707.06347):
  
@@ -67,6 +73,10 @@ The ```Agent``` class is not aware of the structure of the policy representation
 As the state and action space are both relatively small, I decided to use a fully connected layers with 2 hidden layers with 256 neurons each.
 
 ## Chosen Hyperparameters for training
+
+The hyperparameters chosen were a result of experience of previous assigments plus trial and error on the current task. 
+For example, longer rollouts didn't contribute to the results especially at the beginning of the training, 
+as the episodes ended quite quickly when the policy was not able to keep the ball in the air. 
 
 | Parameter           | Value         |   Description                                                                     | 
 | -------------       |:-------------:| -------------------------------------------------------------------------------   | 
